@@ -29,6 +29,7 @@ Scope correction from the PRD:
 - The OpenAI-compatible endpoint is designed for users and tools that already speak the OpenAI API shape and do not have a Speechall-specific integration.
 - A dedicated Speechall node should expose Speechall-native concepts directly, which is simpler for users and reduces verification, documentation, UI, and testing surface area.
 - The OpenAI-compatible endpoint can still be documented separately for users who prefer generic HTTP/OpenAI-shaped workflows outside this node.
+- This is a product scope change from the PRD. Before implementation starts, either update `idea/prd.md` to remove OpenAI-compatible transcription from v1 or record explicit product approval that this implementation plan supersedes that PRD item.
 
 ## 2. References Reviewed
 
@@ -128,6 +129,7 @@ Start from the n8n scaffold scripts and add contract/type generation:
     "lint:fix": "n8n-node lint --fix",
     "release": "n8n-node release",
     "prepublishOnly": "n8n-node prerelease",
+    "cloud-support": "n8n-node cloud-support",
     "generate:openapi-types": "openapi-typescript https://raw.githubusercontent.com/Speechall/speechall-openapi/main/openapi.yaml -o nodes/Speechall/generated/speechall-openapi.ts",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -152,7 +154,7 @@ n8n-nodes-speechall/
       speechall.svg
       descriptions/
         SpeechToText.description.ts
-      listSearch/
+      loadOptions/
         getSpeechToTextModels.ts
       transport/
         speechallApiRequest.ts
@@ -176,6 +178,7 @@ n8n-nodes-speechall/
     meeting-recording-to-diarized-transcript.json
   test/
     normalize.test.ts
+    operations.test.ts
     replacementRules.test.ts
     models.test.ts
   .github/
@@ -344,7 +347,9 @@ Use generated OpenAPI types for compile-time checks where ergonomic. Wrap them i
 export type TranscriptOutputFormat = 'text' | 'json_text' | 'json' | 'srt' | 'vtt';
 
 export interface SpeechallModel {
-  model: string;
+  id: string;
+  model?: string;
+  identifier?: string;
   display_name?: string;
   provider?: string;
   description?: string | null;
@@ -376,14 +381,16 @@ export type ReplacementRule =
       kind: 'regex';
       pattern: string;
       replacement: string;
-      flags?: string[];
+      flags?: RegexRuleFlag[];
     }
   | {
       kind: 'regex_group';
       pattern: string;
       groupReplacements: Record<string, string>;
-      flags?: string[];
+      flags?: RegexRuleFlag[];
     };
+
+export type RegexRuleFlag = 'i' | 'm' | 's' | 'u' | 'x';
 
 export interface NormalizedTranscriptionItem {
   text?: string;
@@ -442,6 +449,16 @@ Timeout strategy:
 - Convert to milliseconds for HTTP helper options.
 - Document that n8n instance-level execution timeouts may still end long workflows.
 
+Large file and model-limit strategy:
+
+- Do not download or preflight remote URLs from the node; let Speechall validate remote file accessibility and size.
+- For binary uploads, fetch `/speech-to-text-models` once per execution when the model was selected from the dynamic dropdown, then look up the selected model id for metadata.
+- Compare the n8n binary metadata size against the selected model's `max_file_size_bytes` only when both values are available.
+- If the selected model has a known `max_file_size_bytes` and the binary input exceeds it, fail locally with a clear `NodeOperationError` before uploading.
+- If the model was entered manually, or if size metadata is unavailable, send the request and surface Speechall's API error.
+- Do not estimate audio duration locally in v1. Document `max_duration_seconds` from List Models and recommend Remote URL transcription for large hosted files.
+- README must explain the interaction between Speechall model limits, node request timeout, and n8n instance execution timeouts.
+
 Error strategy:
 
 - Use `NodeApiError` for HTTP/API failures.
@@ -451,7 +468,7 @@ Error strategy:
 
 ## 10. Dynamic Model Selection
 
-Implement two explicit model modes instead of relying on a custom resource locator:
+Implement two explicit model modes. Use a normal n8n `options` field with `typeOptions.loadOptionsMethod` for dynamic model loading. Do not use `listSearch` unless the field is changed to a `resourceLocator`.
 
 | Field | Internal Name | Type | Default |
 | --- | --- | --- | --- |
@@ -473,12 +490,34 @@ export function getSelectedModel(parameters: INodeParameters): string {
 }
 ```
 
-List search method:
+Dynamic options property shape:
+
+```ts
+{
+  displayName: 'Model',
+  name: 'model',
+  type: 'options',
+  typeOptions: {
+    loadOptionsMethod: 'getSpeechToTextModels',
+  },
+  displayOptions: {
+    show: {
+      modelSelectionMode: ['list'],
+    },
+  },
+  default: '',
+  required: true,
+}
+```
+
+Load options method:
 
 ```ts
 methods = {
-  listSearch: {
-    getSpeechToTextModels,
+  loadOptions: {
+    async getSpeechToTextModels() {
+      // Call GET /speech-to-text-models and return INodePropertyOptions[].
+    },
   },
 };
 ```
@@ -544,9 +583,10 @@ Output item:
 
 Implementation detail:
 
-- The OpenAPI example uses `model` as the identifier field.
-- Some SDK examples refer to `identifier`.
-- Normalize by using `model.model ?? model.identifier ?? model.id`; store the chosen value as `id`.
+- The current OpenAPI `SpeechToTextModel` schema uses `id` as the required identifier field.
+- Older examples or SDK surfaces may refer to `model` or `identifier`.
+- Normalize by using `model.id ?? model.model ?? model.identifier`; store the chosen value as `id`.
+- Treat a model object with no usable identifier as malformed and skip it in dropdowns, while preserving the raw object in List Models output if the operation is called directly.
 
 ## 12. Operation: Transcribe File
 
@@ -680,18 +720,20 @@ Replacement rule UI:
 - Regex rule fields:
   - `pattern`
   - `replacement`
-  - `flags`
+  - `flags` (`i`, `m`, `s`, `u`, `x`)
 - Regex group rule fields:
   - `pattern`
   - `groupReplacements`
-  - `flags`
+  - `flags` (`i`, `m`, `s`, `u`, `x`)
 
 Validation:
 
 - Exact: require `search` and `replacement`.
 - Regex: require `pattern` and `replacement`.
 - Regex group: require `pattern` and at least one group replacement.
-- Validate regex syntax locally with `new RegExp(pattern, flags.join(''))` for `regex` and `regex_group`.
+- Validate regex syntax locally with `new RegExp(pattern, jsFlags.join(''))` only when the selected flags are JavaScript-compatible.
+- The OpenAPI allows the `x` flag, which JavaScript `RegExp` does not support. If `x` is selected, skip local syntax validation and let Speechall validate the rule.
+- Reject unknown flags before submission. Allowed flags are `i`, `m`, `s`, `u`, and `x`.
 - Do not attempt to fully emulate server replacement behavior.
 
 ## 14. Shared Field Groups
@@ -913,7 +955,10 @@ Run on pull request and push to `main`:
 5. `npm run lint`.
 6. `npm run test`.
 7. `npm run build`.
-8. `npx n8n-node scan-community-package` if available in the installed CLI.
+8. `npm run prepublishOnly`.
+9. `npm run cloud-support` if the scaffolded `@n8n/node-cli` version includes the command.
+
+Use the commands exposed by the scaffolded `@n8n/node-cli`; current n8n CLI scaffolds focus on `lint`, `build`, `prerelease`, `release`, and `cloud-support`.
 
 ### 19.3 Publish Workflow
 
@@ -963,6 +1008,7 @@ Example workflows to include as files:
 
 Tasks:
 
+- Resolve the PRD scope conflict by updating `idea/prd.md` or recording explicit approval that this implementation plan supersedes the OpenAI-compatible v1 requirement.
 - Create repo from `npm create @n8n/node`.
 - Set package name to `n8n-nodes-speechall`.
 - Add MIT license.
@@ -1035,7 +1081,7 @@ Tasks:
 - Complete README.
 - Add example workflows.
 - Add a short README note explaining that Speechall's OpenAI-compatible endpoint is for generic HTTP/OpenAI-shaped workflows and is intentionally not exposed in the dedicated Speechall node.
-- Run lint, tests, build, and package scan.
+- Run lint, tests, build, prerelease checks, and `cloud-support` when available.
 - Test in local n8n with a real Speechall API key.
 - Publish prerelease through GitHub Actions.
 - Submit to n8n Creator Portal.
@@ -1045,7 +1091,7 @@ Exit criteria:
 - npm package is public.
 - GitHub repository is public under Speechall.
 - Package has no runtime dependencies.
-- n8n package scan passes.
+- n8n CLI verification-oriented checks pass.
 - Verification submission is ready.
 
 ## 22. Test Plan
@@ -1062,7 +1108,21 @@ Use Vitest for pure functions:
 - `getSelectedModel`
 - `buildTranscriptBinaryMetadata`
 
-### 22.2 Manual Local n8n Tests
+### 22.2 Mocked Operation Tests
+
+Add tests that mock the relevant `IExecuteFunctions` helper methods and assert n8n request/response behavior:
+
+- `Transcribe File` builds `/transcribe` request options with raw binary body, binary MIME type, expected query parameters, and repeated `custom_vocabulary` values.
+- `Transcribe File` fails locally when a selected model's known `max_file_size_bytes` is exceeded.
+- `Transcribe Remote URL` builds `/transcribe-remote` JSON body with `file_url`, advanced options, `ruleset_id`, and inline `replacement_ruleset`.
+- Text-like responses are parsed and normalized correctly when content type is `text/plain`.
+- JSON responses are preserved without destructive flattening.
+- Optional binary transcript output adds a new binary property without dropping existing input binary data.
+- `continueOnFail` returns an item-level error and preserves `pairedItem`.
+- API errors preserve status, Speechall `message`, Speechall `code`, and `Retry-After` without leaking credentials.
+- Dynamic model loading uses `loadOptions.getSpeechToTextModels` and returns `INodePropertyOptions[]`.
+
+### 22.3 Manual Local n8n Tests
 
 Run with `npm run dev` and test:
 
@@ -1076,7 +1136,7 @@ Run with `npm run dev` and test:
 - Optional binary output.
 - Dynamic model dropdown failure fallback through manual mode.
 
-### 22.3 Live API Tests
+### 22.4 Live API Tests
 
 Do not put live Speechall API tests in CI unless Speechall provides dedicated test credentials.
 
@@ -1098,8 +1158,9 @@ Recommended manual/live test matrix:
 | n8n rejects runtime dependencies | Cloud verification blocked | Keep `dependencies` empty |
 | SDK drift from OpenAPI | Incorrect request shape | Generate local types from OpenAPI and review SDK README examples |
 | Long synchronous transcriptions timeout | Failed workflows | Expose timeout setting and document n8n execution timeout limits |
+| Large binary files exceed model limits | Failed uploads after wasted time | Preflight against `max_file_size_bytes` when model metadata and binary size are known |
 | API returns text with unexpected content type | Bad output parsing | Parse based on requested output format first, content type second |
-| Model field names differ (`model`, `identifier`, `id`) | Dynamic dropdown broken | Normalize all known identifier fields |
+| Model field names differ (`id`, `model`, `identifier`) | Dynamic dropdown broken | Treat `id` as canonical and normalize fallback fields defensively |
 | Provider-specific option unsupported | User confusion | Keep options visible, rely on API errors, and document support varies by model |
 | Large binary files pressure n8n memory | Workflow instability | Recommend Remote URL operation for large hosted files |
 
@@ -1121,7 +1182,7 @@ The implementation is done when:
 - `npm run lint` passes.
 - `npm run test` passes.
 - `npm run build` passes.
-- n8n package scan passes.
+- n8n CLI verification-oriented checks pass.
 - Local n8n loads the node.
 - Speechall credentials can be created and tested.
 - All three v1 operations work against the live Speechall API.
