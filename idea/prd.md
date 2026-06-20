@@ -10,7 +10,9 @@
 **Target Distribution:** Verified n8n community node, installable from n8n Cloud and self-hosted n8n
 **Primary Success Criteria:** Listed in the n8n integrations directory and installable from n8n Cloud
 **Version:** PRD v1.0
-**Status:** Ready for technical architecture planning
+**Status:** Superseded for implementation by `idea/implementation-plan.md` v1 scope
+
+**Implementation Scope Note (2026-06-20):** The implementation plan intentionally excludes Speechall's OpenAI-compatible transcription endpoint from the dedicated n8n node v1. The OpenAI-compatible API remains appropriate for generic HTTP/OpenAI-shaped workflows, but the v1 Speechall node will expose Speechall-native operations only: Transcribe File, Transcribe Remote URL, and List Models.
 
 ---
 
