@@ -1,0 +1,18 @@
+{
+	"node": "n8n-nodes-speechall.Speechall",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Utility"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://docs.speechall.com"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://docs.speechall.com"
+			}
+		]
+	}
+}

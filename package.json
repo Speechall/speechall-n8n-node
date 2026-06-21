@@ -1,0 +1,65 @@
+{
+	"name": "n8n-nodes-speechall",
+	"version": "0.1.0",
+	"description": "Transcribe audio in n8n using Speechall",
+	"license": "MIT",
+	"homepage": "https://github.com/Speechall/speechall-n8n-node",
+	"keywords": [
+		"n8n-community-node-package",
+		"n8n",
+		"speechall",
+		"transcription",
+		"speech-to-text",
+		"audio",
+		"subtitles",
+		"diarization"
+	],
+	"author": {
+		"name": "Speechall"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Speechall/speechall-n8n-node.git"
+	},
+	"scripts": {
+		"build": "n8n-node build",
+		"build:watch": "tsc --watch",
+		"dev": "n8n-node dev",
+		"lint": "n8n-node lint",
+		"lint:fix": "n8n-node lint --fix",
+		"release": "n8n-node release",
+		"prepublishOnly": "n8n-node prerelease",
+		"generate:openapi-types": "openapi-typescript https://raw.githubusercontent.com/Speechall/speechall-openapi/main/openapi.yaml -o nodes/Speechall/generated/speechall-openapi.ts",
+		"test": "vitest run",
+		"test:watch": "vitest"
+	},
+	"files": [
+		"dist",
+		"examples",
+		"!dist/**/*.tsbuildinfo"
+	],
+	"n8n": {
+		"n8nNodesApiVersion": 1,
+		"strict": true,
+		"credentials": [
+			"dist/credentials/SpeechallApi.credentials.js"
+		],
+		"nodes": [
+			"dist/nodes/Speechall/Speechall.node.js"
+		]
+	},
+	"dependencies": {},
+	"devDependencies": {
+		"@n8n/node-cli": "0.35.1",
+		"@types/node": "^22.20.0",
+		"eslint": "9.29.0",
+		"openapi-typescript": "^7.13.0",
+		"prettier": "3.6.2",
+		"release-it": "^19.0.4",
+		"typescript": "5.9.2",
+		"vitest": "^4.1.9"
+	},
+	"peerDependencies": {
+		"n8n-workflow": "*"
+	}
+}

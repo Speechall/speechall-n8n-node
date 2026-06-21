@@ -1,0 +1,71 @@
+{
+	"name": "Google Drive Audio to Transcript",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "manual-trigger",
+			"name": "Manual Trigger",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"operation": "download",
+				"fileId": "={{$json.fileId}}"
+			},
+			"id": "download-audio",
+			"name": "Download Audio",
+			"type": "n8n-nodes-base.googleDrive",
+			"typeVersion": 3,
+			"position": [220, 0]
+		},
+		{
+			"parameters": {
+				"resource": "speechToText",
+				"operation": "transcribeFile",
+				"binaryPropertyName": "data",
+				"modelSelectionMode": "manual",
+				"modelId": "openai.whisper-1",
+				"language": "en",
+				"outputFormat": "text"
+			},
+			"id": "speechall-transcribe",
+			"name": "Speechall Transcribe",
+			"type": "n8n-nodes-speechall.speechall",
+			"typeVersion": 1,
+			"position": [460, 0],
+			"credentials": {
+				"speechallApi": {
+					"id": "replace-me",
+					"name": "Speechall API"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"title": "={{$json.name || 'Audio Transcript'}}",
+				"text": "={{$json.text}}"
+			},
+			"id": "create-doc",
+			"name": "Create Transcript Document",
+			"type": "n8n-nodes-base.googleDocs",
+			"typeVersion": 2,
+			"position": [700, 0]
+		}
+	],
+	"connections": {
+		"Manual Trigger": {
+			"main": [[{ "node": "Download Audio", "type": "main", "index": 0 }]]
+		},
+		"Download Audio": {
+			"main": [[{ "node": "Speechall Transcribe", "type": "main", "index": 0 }]]
+		},
+		"Speechall Transcribe": {
+			"main": [[{ "node": "Create Transcript Document", "type": "main", "index": 0 }]]
+		}
+	},
+	"active": false,
+	"settings": {},
+	"versionId": "example-google-drive-audio-to-transcript"
+}

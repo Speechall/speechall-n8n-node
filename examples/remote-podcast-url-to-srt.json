@@ -1,0 +1,66 @@
+{
+	"name": "Remote Podcast URL to SRT",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "manual-trigger",
+			"name": "Manual Trigger",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"assignments": {
+					"assignments": [
+						{
+							"name": "fileUrl",
+							"value": "https://example.com/podcast.mp3",
+							"type": "string"
+						}
+					]
+				}
+			},
+			"id": "set-url",
+			"name": "Set Podcast URL",
+			"type": "n8n-nodes-base.set",
+			"typeVersion": 3,
+			"position": [220, 0]
+		},
+		{
+			"parameters": {
+				"resource": "speechToText",
+				"operation": "transcribeRemoteUrl",
+				"fileUrl": "={{$json.fileUrl}}",
+				"modelSelectionMode": "manual",
+				"modelId": "openai.whisper-1",
+				"language": "en",
+				"outputFormat": "srt",
+				"alsoReturnBinary": true,
+				"binaryOutputProperty": "transcript"
+			},
+			"id": "speechall-srt",
+			"name": "Speechall SRT",
+			"type": "n8n-nodes-speechall.speechall",
+			"typeVersion": 1,
+			"position": [460, 0],
+			"credentials": {
+				"speechallApi": {
+					"id": "replace-me",
+					"name": "Speechall API"
+				}
+			}
+		}
+	],
+	"connections": {
+		"Manual Trigger": {
+			"main": [[{ "node": "Set Podcast URL", "type": "main", "index": 0 }]]
+		},
+		"Set Podcast URL": {
+			"main": [[{ "node": "Speechall SRT", "type": "main", "index": 0 }]]
+		}
+	},
+	"active": false,
+	"settings": {},
+	"versionId": "example-remote-podcast-url-to-srt"
+}

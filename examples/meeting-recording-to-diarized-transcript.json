@@ -1,0 +1,59 @@
+{
+	"name": "Meeting Recording to Diarized Transcript",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "manual-trigger",
+			"name": "Manual Trigger",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "speechToText",
+				"operation": "transcribeFile",
+				"binaryPropertyName": "data",
+				"modelSelectionMode": "manual",
+				"modelId": "deepgram.nova-3",
+				"language": "auto",
+				"outputFormat": "json",
+				"diarization": true,
+				"speakersExpected": 4
+			},
+			"id": "speechall-diarized",
+			"name": "Speechall Diarized Transcript",
+			"type": "n8n-nodes-speechall.speechall",
+			"typeVersion": 1,
+			"position": [240, 0],
+			"credentials": {
+				"speechallApi": {
+					"id": "replace-me",
+					"name": "Speechall API"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"channel": "meetings",
+				"text": "={{$json.text}}"
+			},
+			"id": "send-summary",
+			"name": "Send Transcript",
+			"type": "n8n-nodes-base.slack",
+			"typeVersion": 2,
+			"position": [480, 0]
+		}
+	],
+	"connections": {
+		"Manual Trigger": {
+			"main": [[{ "node": "Speechall Diarized Transcript", "type": "main", "index": 0 }]]
+		},
+		"Speechall Diarized Transcript": {
+			"main": [[{ "node": "Send Transcript", "type": "main", "index": 0 }]]
+		}
+	},
+	"active": false,
+	"settings": {},
+	"versionId": "example-meeting-recording-to-diarized-transcript"
+}

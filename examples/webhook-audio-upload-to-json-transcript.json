@@ -1,0 +1,64 @@
+{
+	"name": "Webhook Audio Upload to JSON Transcript",
+	"nodes": [
+		{
+			"parameters": {
+				"httpMethod": "POST",
+				"path": "speechall-upload",
+				"responseMode": "lastNode",
+				"options": {
+					"binaryData": true
+				}
+			},
+			"id": "webhook",
+			"name": "Webhook",
+			"type": "n8n-nodes-base.webhook",
+			"typeVersion": 2,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "speechToText",
+				"operation": "transcribeFile",
+				"binaryPropertyName": "data",
+				"modelSelectionMode": "manual",
+				"modelId": "openai.whisper-1",
+				"language": "auto",
+				"outputFormat": "json"
+			},
+			"id": "speechall-transcribe",
+			"name": "Speechall Transcribe",
+			"type": "n8n-nodes-speechall.speechall",
+			"typeVersion": 1,
+			"position": [240, 0],
+			"credentials": {
+				"speechallApi": {
+					"id": "replace-me",
+					"name": "Speechall API"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"respondWith": "json",
+				"responseBody": "={{$json}}"
+			},
+			"id": "respond",
+			"name": "Respond to Webhook",
+			"type": "n8n-nodes-base.respondToWebhook",
+			"typeVersion": 1,
+			"position": [480, 0]
+		}
+	],
+	"connections": {
+		"Webhook": {
+			"main": [[{ "node": "Speechall Transcribe", "type": "main", "index": 0 }]]
+		},
+		"Speechall Transcribe": {
+			"main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
+		}
+	},
+	"active": false,
+	"settings": {},
+	"versionId": "example-webhook-audio-upload-to-json-transcript"
+}
