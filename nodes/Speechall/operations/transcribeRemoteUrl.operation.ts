@@ -158,7 +158,9 @@ function buildRemoteBody(
 
 	addIfPresent(body, 'initial_prompt', parameters.initialPrompt);
 	addIfPresent(body, 'temperature', parameters.temperature);
-	addIfPresent(body, 'speakers_expected', parameters.speakersExpected);
+	if (parameters.diarization) {
+		addIfPresent(body, 'speakers_expected', parameters.speakersExpected);
+	}
 	addIfPresent(body, 'ruleset_id', parameters.rulesetId);
 
 	const customVocabulary = serializeCustomVocabulary(parameters);

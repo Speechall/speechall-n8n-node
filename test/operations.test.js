@@ -259,6 +259,42 @@ describe('transcribeRemoteUrlOperation', () => {
 		expect(result.json.fileUrl).toBeUndefined();
 		expect(result.binary).toBe(item.binary);
 	});
+
+	it('does not send speakers_expected when diarization is disabled', async () => {
+		const item = { json: { input: true } };
+		const context = createExecuteContext({
+			items: [item],
+			parameters: {
+				fileUrl: 'https://cdn.example.com/audio.mp3',
+				modelSelectionMode: 'manual',
+				modelId: 'assemblyai.universal-2',
+				language: 'en',
+				outputFormat: 'text',
+				punctuation: true,
+				diarization: false,
+				temperature: 0,
+				speakersExpected: 1,
+				timeoutSeconds: 300,
+			},
+			responses: [
+				{
+					statusCode: 200,
+					headers: { 'content-type': 'text/plain' },
+					body: 'hello',
+				},
+			],
+		});
+
+		await transcribeRemoteUrlOperation.call(context, item, 0);
+		const request = context.helpers.httpRequestWithAuthentication.mock.calls[0][1];
+
+		expect(request.body).toMatchObject({
+			file_url: 'https://cdn.example.com/audio.mp3',
+			model: 'assemblyai.universal-2',
+			diarization: false,
+		});
+		expect(request.body).not.toHaveProperty('speakers_expected');
+	});
 });
 
 describe('Speechall node execution', () => {
