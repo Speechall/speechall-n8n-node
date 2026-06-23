@@ -145,7 +145,11 @@ export function advancedTranscriptionFields(displayOptions: IDisplayOptions): IN
 				maxValue: 10,
 			},
 			description: 'Optional speaker count hint for diarization',
-			displayOptions,
+			displayOptions: mergeDisplayOptions(displayOptions, {
+				show: {
+					diarization: [true],
+				},
+			}),
 		},
 		{
 			displayName: 'Custom Vocabulary',

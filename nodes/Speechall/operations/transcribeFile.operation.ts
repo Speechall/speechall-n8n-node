@@ -161,7 +161,9 @@ function buildTranscriptionQuery(parameters: TranscribeFileParameters, model: st
 
 	addIfPresent(qs, 'initial_prompt', parameters.initialPrompt);
 	addIfPresent(qs, 'temperature', parameters.temperature);
-	addIfPresent(qs, 'speakers_expected', parameters.speakersExpected);
+	if (parameters.diarization) {
+		addIfPresent(qs, 'speakers_expected', parameters.speakersExpected);
+	}
 	addIfPresent(qs, 'ruleset_id', parameters.rulesetId);
 
 	const customVocabulary = serializeCustomVocabulary(parameters);

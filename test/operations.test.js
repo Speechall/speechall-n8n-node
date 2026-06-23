@@ -74,6 +74,7 @@ describe('transcribeFileOperation', () => {
 				outputFormat: 'srt',
 				punctuation: true,
 				diarization: false,
+				speakersExpected: 1,
 				customVocabulary: {
 					values: [{ term: 'Speechall' }, { term: '' }, { term: 'API' }],
 				},
@@ -115,6 +116,7 @@ describe('transcribeFileOperation', () => {
 				custom_vocabulary: ['Speechall', 'API'],
 			},
 		});
+		expect(request.qs).not.toHaveProperty('speakers_expected');
 		expect(Buffer.isBuffer(request.body)).toBe(true);
 		expect(result.json).toEqual({
 			text: '1\n00:00:00,000 --> 00:00:01,000\nHello',
