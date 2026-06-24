@@ -1,0 +1,1 @@
+Speechall is a unified speech-to-text API for transcribing audio with multiple providers and models. This package adds a verified-ready n8n community node for Speechall batch transcription workflows.
