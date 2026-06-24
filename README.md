@@ -10,7 +10,7 @@ For local development:
 
 ```bash
 nvm use
-npm install --ignore-scripts
+npm ci --ignore-scripts
 npm run generate:openapi-types
 npm run lint
 npm run test
@@ -20,6 +20,69 @@ npm run build
 This repository keeps runtime `dependencies` empty for n8n Cloud verification readiness. Development tooling is installed only as `devDependencies`.
 
 Use Node 22 LTS for local n8n tooling. Newer non-LTS Node releases can fail while installing n8n development dependencies with native modules such as `isolated-vm`.
+
+## Local n8n UI Testing
+
+Use this flow when you want to test the node in a real local n8n editor before publishing it.
+
+### Recommended: install the packed node into a local n8n user folder
+
+This is the closest local equivalent to installing the package as an n8n community node. It avoids development hot-reload edge cases and uses the stable node type name `n8n-nodes-speechall.speechall`.
+
+```bash
+nvm use
+npm ci --ignore-scripts
+npm run build
+npm pack --silent
+
+REPO_ROOT=$(pwd)
+mkdir -p /tmp/speechall-n8n-ui/.n8n/nodes
+cd /tmp/speechall-n8n-ui/.n8n/nodes
+npm install "$REPO_ROOT/n8n-nodes-speechall-0.1.0.tgz" --ignore-scripts
+
+N8N_USER_FOLDER=/tmp/speechall-n8n-ui npx n8n@latest
+```
+
+Then open:
+
+```text
+http://localhost:5678
+```
+
+Important details:
+
+- `N8N_USER_FOLDER` should be `/tmp/speechall-n8n-ui`, not `/tmp/speechall-n8n-ui/.n8n`. n8n creates and reads its `.n8n` directory inside the user folder.
+- The installed community node package lives under `/tmp/speechall-n8n-ui/.n8n/nodes`.
+- After code changes, repeat `npm run build`, `npm pack --silent`, and the `npm install ...tgz` command, then restart n8n.
+- Stop n8n with `Ctrl+C` in the terminal running `npx n8n@latest`.
+- The temporary user folder keeps local credentials and workflows between restarts. Remove `/tmp/speechall-n8n-ui` only when you want to reset the local n8n instance.
+
+If you prefer to keep the repository path explicit:
+
+```bash
+REPO_ROOT=/path/to/speechall-n8n-node
+cd /tmp/speechall-n8n-ui/.n8n/nodes
+npm install "$REPO_ROOT/n8n-nodes-speechall-0.1.0.tgz" --ignore-scripts
+```
+
+### Development hot-reload mode
+
+The package also supports `n8n-node dev`:
+
+```bash
+nvm use
+npm run dev -- --custom-user-folder /tmp/speechall-n8n-ui
+```
+
+This mode is useful while editing node descriptions or operation code, but it may register a temporary development node type such as `CUSTOM.speechall`. If n8n reports `Unrecognized node type: CUSTOM.speechall`, stop the dev server and use the packed-node flow above.
+
+### Quick smoke test
+
+1. Create a **Speechall API** credential and run the credential test.
+2. Create `Manual Trigger -> Speechall`.
+3. Run **List Speech-to-Text Models** and confirm one item is returned per model.
+4. Run **Transcribe a Remote URL** with a public MP3 URL and confirm output includes `text`, `outputFormat`, `model`, `source: "remote_url"`, and `sourceUrlSanitized`.
+5. Keep **Include Source URL in Output** disabled unless you intentionally want the full URL in output.
 
 ## Credentials
 

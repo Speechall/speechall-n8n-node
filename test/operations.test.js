@@ -16,6 +16,7 @@ const node = {
 
 function createExecuteContext({
 	parameters = {},
+	missingParameterErrors = [],
 	items = [],
 	responses = [],
 	continueOnFail = false,
@@ -37,8 +38,15 @@ function createExecuteContext({
 			}
 			return items;
 		},
-		getNodeParameter: (name, _itemIndex, fallback) =>
-			Object.prototype.hasOwnProperty.call(parameters, name) ? parameters[name] : fallback,
+		getNodeParameter: (name, _itemIndex, fallback) => {
+			if (
+				missingParameterErrors.includes(name) &&
+				!Object.prototype.hasOwnProperty.call(parameters, name)
+			) {
+				throw new Error(`Could not get parameter "${name}"`);
+			}
+			return Object.prototype.hasOwnProperty.call(parameters, name) ? parameters[name] : fallback;
+		},
 		helpers: {
 			httpRequestWithAuthentication,
 			getBinaryDataBuffer: vi.fn(async () => Buffer.from('audio bytes')),
@@ -66,6 +74,7 @@ describe('transcribeFileOperation', () => {
 		};
 		const context = createExecuteContext({
 			items: [item],
+			missingParameterErrors: ['speakersExpected'],
 			parameters: {
 				binaryPropertyName: 'data',
 				modelSelectionMode: 'manual',
@@ -74,7 +83,6 @@ describe('transcribeFileOperation', () => {
 				outputFormat: 'srt',
 				punctuation: true,
 				diarization: false,
-				speakersExpected: 1,
 				customVocabulary: {
 					values: [{ term: 'Speechall' }, { term: '' }, { term: 'API' }],
 				},
@@ -266,6 +274,7 @@ describe('transcribeRemoteUrlOperation', () => {
 		const item = { json: { input: true } };
 		const context = createExecuteContext({
 			items: [item],
+			missingParameterErrors: ['speakersExpected'],
 			parameters: {
 				fileUrl: 'https://cdn.example.com/audio.mp3',
 				modelSelectionMode: 'manual',
@@ -275,7 +284,6 @@ describe('transcribeRemoteUrlOperation', () => {
 				punctuation: true,
 				diarization: false,
 				temperature: 0,
-				speakersExpected: 1,
 				timeoutSeconds: 300,
 			},
 			responses: [

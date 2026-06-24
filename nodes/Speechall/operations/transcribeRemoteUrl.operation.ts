@@ -108,9 +108,10 @@ function getOperationParameters(
 	itemIndex: number,
 ): TranscribeRemoteUrlParameters {
 	const temperature = optionalNumber(this.getNodeParameter('temperature', itemIndex, undefined));
-	const speakersExpected = optionalNumber(
-		this.getNodeParameter('speakersExpected', itemIndex, undefined),
-	);
+	const diarization = this.getNodeParameter('diarization', itemIndex, false) as boolean;
+	const speakersExpected = diarization
+		? optionalNumber(this.getNodeParameter('speakersExpected', itemIndex, undefined))
+		: undefined;
 
 	return {
 		fileUrl: this.getNodeParameter('fileUrl', itemIndex, '') as string,
@@ -124,7 +125,7 @@ function getOperationParameters(
 			'text',
 		) as TranscriptOutputFormat,
 		punctuation: this.getNodeParameter('punctuation', itemIndex, true) as boolean,
-		diarization: this.getNodeParameter('diarization', itemIndex, false) as boolean,
+		diarization,
 		initialPrompt: this.getNodeParameter('initialPrompt', itemIndex, '') as string,
 		temperature,
 		speakersExpected,
