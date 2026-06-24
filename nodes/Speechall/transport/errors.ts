@@ -39,7 +39,10 @@ export function toNodeOperationError(
 	context: IExecuteFunctions,
 	error: unknown,
 	itemIndex: number,
-): NodeOperationError {
+): NodeOperationError | NodeApiError {
+	if (error instanceof NodeApiError) {
+		return error;
+	}
 	if (error instanceof NodeOperationError) {
 		error.context = { ...(error.context ?? {}), itemIndex };
 		return error;

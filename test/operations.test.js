@@ -308,6 +308,35 @@ describe('transcribeRemoteUrlOperation', () => {
 });
 
 describe('Speechall node execution', () => {
+	it('preserves Speechall authentication errors during node execution', async () => {
+		const unauthorized = new Error('Request failed with status code 401');
+		unauthorized.response = {
+			statusCode: 401,
+			headers: { 'content-type': 'application/json' },
+			body: { error: 'Unauthorized' },
+		};
+		const context = createExecuteContext({
+			items: [{ json: { input: true } }],
+			parameters: {
+				operation: 'transcribeRemoteUrl',
+				fileUrl: 'https://cdn.example.com/audio.mp3',
+				modelSelectionMode: 'manual',
+				modelId: 'assemblyai.universal-2',
+				language: 'en',
+				outputFormat: 'text',
+				punctuation: true,
+				diarization: false,
+				timeoutSeconds: 300,
+			},
+			responses: [unauthorized],
+		});
+		const nodeType = new Speechall();
+
+		await expect(nodeType.execute.call(context)).rejects.toThrow(
+			'Invalid or missing Speechall API key',
+		);
+	});
+
 	it('returns item-level errors when continueOnFail is enabled', async () => {
 		const context = createExecuteContext({
 			continueOnFail: true,
