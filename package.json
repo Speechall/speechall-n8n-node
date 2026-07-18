@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-speechall",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Transcribe audio in n8n using Speechall",
 	"license": "MIT",
 	"homepage": "https://github.com/Speechall/speechall-n8n-node",
