@@ -39,6 +39,12 @@ Select the appropriate version increment and approve the release commit, version
 
 After the workflow succeeds, confirm the new version and provenance on the [npm package page](https://www.npmjs.com/package/n8n-nodes-speechall). The package's npm publishing access must remain configured for the `Speechall/speechall-n8n-node` repository and `publish.yml` workflow.
 
+Before submitting a published version to the n8n Creator Portal, run the official community package scanner:
+
+```bash
+npx @n8n/scan-community-package n8n-nodes-speechall
+```
+
 ## Local n8n UI Testing
 
 Use this flow when you want to test the node in a real local n8n editor before publishing it.
