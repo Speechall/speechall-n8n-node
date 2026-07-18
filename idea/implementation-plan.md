@@ -1010,7 +1010,7 @@ Requirements:
 
 - Publish from GitHub Actions.
 - Use npm provenance.
-- Use npm Trusted Publishers if possible; otherwise use granular `NPM_TOKEN`.
+- Use npm Trusted Publishing for authentication; do not store an `NPM_TOKEN` in GitHub.
 - Do not publish from a local machine for verification-targeted releases.
 - Ensure `@n8n/node-cli` is at least `0.23.0`.
 

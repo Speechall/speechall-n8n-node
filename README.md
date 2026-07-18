@@ -4,7 +4,7 @@ Speechall is a unified speech-to-text API for transcribing audio with multiple p
 
 ## Installation
 
-Install `n8n-nodes-speechall` as a community node in n8n Cloud or self-hosted n8n after the package is published to npm.
+Install `n8n-nodes-speechall` as a community node in n8n Cloud or self-hosted n8n.
 
 For local development:
 
@@ -21,6 +21,24 @@ This repository keeps runtime `dependencies` empty for n8n Cloud verification re
 
 Use Node 22 LTS for local n8n tooling. Newer non-LTS Node releases can fail while installing n8n development dependencies with native modules such as `isolated-vm`.
 
+## Releases
+
+All npm releases are published by [the GitHub Actions publish workflow](https://github.com/Speechall/speechall-n8n-node/blob/main/.github/workflows/publish.yml) through npm Trusted Publishing with provenance. Do not add an `NPM_TOKEN` repository secret and do not run `npm publish` locally.
+
+To create a release:
+
+```bash
+git switch main
+git pull --ff-only
+npm ci
+npm test
+npm run release
+```
+
+Select the appropriate version increment and approve the release commit, version tag, and push. Tags use the version without a `v` prefix, such as `0.1.4`. The pushed tag triggers GitHub Actions, which runs lint and build checks before publishing to npm.
+
+After the workflow succeeds, confirm the new version and provenance on the [npm package page](https://www.npmjs.com/package/n8n-nodes-speechall). The package's npm publishing access must remain configured for the `Speechall/speechall-n8n-node` repository and `publish.yml` workflow.
+
 ## Local n8n UI Testing
 
 Use this flow when you want to test the node in a real local n8n editor before publishing it.
@@ -33,12 +51,12 @@ This is the closest local equivalent to installing the package as an n8n communi
 nvm use
 npm ci --ignore-scripts
 npm run build
-npm pack --silent
+PACKAGE_TARBALL=$(npm pack --silent)
 
 REPO_ROOT=$(pwd)
 mkdir -p /tmp/speechall-n8n-ui/.n8n/nodes
 cd /tmp/speechall-n8n-ui/.n8n/nodes
-npm install "$REPO_ROOT/n8n-nodes-speechall-0.1.0.tgz" --ignore-scripts
+npm install "$REPO_ROOT/$PACKAGE_TARBALL" --ignore-scripts
 
 N8N_USER_FOLDER=/tmp/speechall-n8n-ui npx n8n@latest
 ```
@@ -61,8 +79,9 @@ If you prefer to keep the repository path explicit:
 
 ```bash
 REPO_ROOT=/path/to/speechall-n8n-node
+PACKAGE_TARBALL=$(cd "$REPO_ROOT" && npm pack --silent)
 cd /tmp/speechall-n8n-ui/.n8n/nodes
-npm install "$REPO_ROOT/n8n-nodes-speechall-0.1.0.tgz" --ignore-scripts
+npm install "$REPO_ROOT/$PACKAGE_TARBALL" --ignore-scripts
 ```
 
 ### Development hot-reload mode

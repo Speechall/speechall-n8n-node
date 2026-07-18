@@ -2,7 +2,7 @@
 
 Date: 2026-06-21  
 Package: `n8n-nodes-speechall`  
-Current local status: implementation, lint, tests, build, release guard, and npm pack dry-run pass.
+Current status: implementation, lint, tests, build, release guard, and npm pack dry-run pass. Version `0.1.3` is published from GitHub Actions through npm Trusted Publishing with provenance.
 
 ## 1. Current Blockers
 
@@ -10,8 +10,7 @@ The implementation is locally complete, but the full plan is blocked on external
 
 1. A real Speechall API key is required for credential and live transcription tests.
 2. Local full n8n dev launch should be run with Node 22 LTS. Node 26 fails while installing current `n8n@latest` native dependencies, specifically `isolated-vm`.
-3. GitHub/npm release setup is required for provenance publishing.
-4. n8n Creator Portal access is required for final verification submission.
+3. n8n Creator Portal access is required for final verification submission.
 
 ## 2. Environment Setup
 
@@ -228,8 +227,8 @@ Expected evidence:
    - `npm run lint`
    - `npm run test`
    - `npm run build`
-3. Configure npm Trusted Publishing for `.github/workflows/publish.yml`, or add a scoped `NPM_TOKEN`.
-4. Create a version tag matching `*.*.*`, for example `0.1.0`.
+3. Keep npm Trusted Publishing configured for `.github/workflows/publish.yml`; do not add an `NPM_TOKEN`.
+4. Run `npm run release` to create and push a version tag matching `*.*.*`.
 5. Confirm GitHub Actions publishes to npm with provenance.
 6. Install the published package in a clean n8n instance.
 7. Re-run the UI tests above against the published package.
@@ -249,6 +248,6 @@ Expected evidence:
 - [ ] Optional transcript binary output works for `text`, `srt`, and `vtt`.
 - [ ] Inline replacement rules serialize correctly.
 - [ ] `Continue On Fail` returns item-level errors.
-- [ ] Package is published from GitHub Actions with provenance.
-- [ ] Published package has no runtime dependencies.
+- [x] Package is published from GitHub Actions with provenance.
+- [x] Published package has no runtime dependencies.
 - [ ] n8n Creator Portal submission is ready.
