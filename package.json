@@ -15,7 +15,8 @@
 		"diarization"
 	],
 	"author": {
-		"name": "Speechall"
+		"name": "Speechall",
+		"email": "info@actondon.com"
 	},
 	"repository": {
 		"type": "git",
