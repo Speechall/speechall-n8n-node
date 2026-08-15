@@ -144,17 +144,22 @@ export interface components {
          * @description The identifier for the underlying Speech-to-Text service provider (e.g., 'openai', 'deepgram').
          * @enum {string}
          */
-        TranscriptionProvider: "amazon" | "assemblyai" | "azure" | "cloudflare" | "deepgram" | "elevenlabs" | "falai" | "fireworksai" | "gemini" | "gladia" | "google" | "groq" | "ibm" | "mistral" | "openai" | "revai" | "speechmatics";
+        TranscriptionProvider: "amazon" | "assemblyai" | "azure" | "cloudflare" | "deepgram" | "elevenlabs" | "gemini" | "gladia" | "google" | "groq" | "ibm" | "mistral" | "openai" | "revai" | "speechmatics";
+        /**
+         * @description An opaque Speech-to-Text model identifier in `provider.model_name` form. Obtain currently available values from the `/speech-to-text-models` endpoint.
+         * @example openai.whisper-1
+         */
+        OpenTranscriptionModelIdentifier: string;
         /**
          * @description Unique identifier for a specific Speech-to-Text model, composed as `provider.model_name`. Used to select the engine for transcription.
          * @example openai.whisper-1
          * @enum {string}
          */
-        TranscriptionModelIdentifier: "amazon.transcribe" | "assemblyai.universal" | "assemblyai.universal-2" | "assemblyai.universal-3-5-pro" | "azure.standard" | "cloudflare.whisper" | "cloudflare.whisper-large-v3-turbo" | "cloudflare.whisper-tiny-en" | "deepgram.nova-3" | "deepgram.nova-3-general" | "deepgram.nova-3-medical" | "deepgram.nova-2" | "deepgram.nova-2-general" | "deepgram.nova-2-meeting" | "deepgram.nova-2-finance" | "deepgram.nova-2-conversationalai" | "deepgram.nova-2-voicemail" | "deepgram.nova-2-video" | "deepgram.nova-2-medical" | "deepgram.nova-2-drivethru" | "deepgram.nova-2-automotive" | "deepgram.nova" | "deepgram.nova-general" | "deepgram.nova-phonecall" | "deepgram.nova-medical" | "deepgram.enhanced" | "deepgram.enhanced-general" | "deepgram.enhanced-meeting" | "deepgram.enhanced-phonecall" | "deepgram.enhanced-finance" | "deepgram.base" | "deepgram.meeting" | "deepgram.phonecall" | "deepgram.finance" | "deepgram.conversationalai" | "deepgram.voicemail" | "deepgram.video" | "elevenlabs.scribe-v1" | "falai.cohere-transcribe" | "falai.nvidia-nemotron-asr-multilingual" | "falai.whisper" | "falai.wizper" | "fireworksai.whisper-v3" | "fireworksai.whisper-v3-turbo" | "gladia.standard" | "google.enhanced" | "google.standard" | "gemini.gemini-2.5-pro" | "gemini.gemini-2.5-flash" | "gemini.gemini-2.5-flash-lite" | "groq.whisper-large-v3" | "groq.whisper-large-v3-turbo" | "ibm.standard" | "mistral.voxtral-mini" | "mistral.voxtral-mini-v2" | "openai.whisper-1" | "openai.gpt-4o-transcribe" | "openai.gpt-4o-mini-transcribe" | "openai.gpt-4o-transcribe-diarize" | "revai.machine" | "revai.fusion" | "speechmatics.enhanced" | "speechmatics.standard";
+        TranscriptionModelIdentifier: "amazon.transcribe" | "assemblyai.universal-2" | "assemblyai.universal-3-5-pro" | "azure.standard" | "cloudflare.whisper" | "cloudflare.whisper-large-v3-turbo" | "cloudflare.whisper-tiny-en" | "deepgram.base" | "deepgram.conversationalai" | "deepgram.enhanced" | "deepgram.enhanced-finance" | "deepgram.enhanced-general" | "deepgram.enhanced-meeting" | "deepgram.enhanced-phonecall" | "deepgram.finance" | "deepgram.meeting" | "deepgram.nova" | "deepgram.nova-2" | "deepgram.nova-2-automotive" | "deepgram.nova-2-conversationalai" | "deepgram.nova-2-drivethru" | "deepgram.nova-2-finance" | "deepgram.nova-2-general" | "deepgram.nova-2-medical" | "deepgram.nova-2-meeting" | "deepgram.nova-2-video" | "deepgram.nova-2-voicemail" | "deepgram.nova-3" | "deepgram.nova-3-general" | "deepgram.nova-3-medical" | "deepgram.nova-general" | "deepgram.nova-medical" | "deepgram.nova-phonecall" | "deepgram.phonecall" | "deepgram.video" | "deepgram.voicemail" | "elevenlabs.scribe-v1" | "elevenlabs.scribe-v2" | "gemini.gemini-2.5-flash" | "gemini.gemini-2.5-flash-lite" | "gemini.gemini-2.5-pro" | "gladia.standard" | "google.enhanced" | "google.standard" | "groq.whisper-large-v3" | "groq.whisper-large-v3-turbo" | "ibm.standard" | "mistral.voxtral-mini" | "mistral.voxtral-mini-v2" | "openai.gpt-4o-mini-transcribe" | "openai.gpt-4o-transcribe" | "openai.gpt-4o-transcribe-diarize" | "openai.whisper-1" | "revai.fusion" | "revai.machine" | "speechmatics.enhanced" | "speechmatics.standard";
         /** @description Common configuration options for transcription, applicable to both direct uploads and remote URLs. */
         BaseTranscriptionConfiguration: {
             /** @description The identifier of the speech-to-text model to use. */
-            model: components["schemas"]["TranscriptionModelIdentifier"];
+            model: components["schemas"]["OpenTranscriptionModelIdentifier"];
             /** @description The language code (ISO 639-1) of the audio. Defaults to `en`. Use `auto` for automatic detection if supported. */
             language?: components["schemas"]["TranscriptLanguageCode"];
             /** @description The desired format for the transcription output. Defaults to `text`. */
@@ -323,7 +328,7 @@ export interface components {
         /** @description Describes an available speech-to-text model, its provider, capabilities, and characteristics. */
         SpeechToTextModel: {
             /** @description The unique identifier for this model (`provider.model_name`). */
-            id: components["schemas"]["TranscriptionModelIdentifier"];
+            id: components["schemas"]["OpenTranscriptionModelIdentifier"];
             /**
              * @description A user-friendly name for the model.
              * @example Deepgram Nova 2 - General
@@ -495,7 +500,7 @@ export interface components {
              */
             file: string;
             /** @description The Speechall model identifier (`provider.model`) to use for transcription. */
-            model: components["schemas"]["TranscriptionModelIdentifier"];
+            model: components["schemas"]["OpenTranscriptionModelIdentifier"];
             /** @description The language of the input audio. Supplying the input language in [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format will improve accuracy and latency. */
             language?: string;
             /** @description An optional text to guide the model's style or continue a previous audio segment. The [prompt](/docs/guides/speech-to-text/prompting) should match the audio language. */
@@ -540,11 +545,8 @@ export interface components {
              * @description The audio file object (not file name) translate, in one of these formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
              */
             file: string;
-            /**
-             * @description ID of the model to use. It follows the naming convention provider/model-name
-             * @example openai/whisper-1
-             */
-            model: string | "openai.whisper-1";
+            /** @description A Speechall model identifier capable of translation, in `provider.model` form. */
+            model: components["schemas"]["OpenTranscriptionModelIdentifier"];
             /** @description An optional text to guide the model's style or continue a previous audio segment. The [prompt](/docs/guides/speech-to-text/prompting) should be in English. */
             prompt?: string;
             /** @description The desired format for the translation output. Defaults to `json`. */
@@ -887,7 +889,7 @@ export interface operations {
         parameters: {
             query: {
                 /** @description The identifier of the speech-to-text model to use for the transcription, in the format `provider.model`. See the `/speech-to-text-models` endpoint for available models. */
-                model: components["schemas"]["TranscriptionModelIdentifier"];
+                model: components["schemas"]["OpenTranscriptionModelIdentifier"];
                 /** @description The language of the audio file in ISO 639-1 format (e.g., `en`, `es`, `fr`). Specify `auto` for automatic language detection (if supported by the model). Defaults to `en` if not provided. Providing the correct language improves accuracy and latency. */
                 language?: components["schemas"]["TranscriptLanguageCode"];
                 /** @description The desired format for the transcription output. Can be plain text, JSON objects (simple or detailed), or subtitle formats (SRT, VTT). Defaults to `text`. */
@@ -1130,7 +1132,7 @@ export interface operations {
                      * @example [
                      *       {
                      *         "provider": "openai",
-                     *         "model": "openai.whisper-1",
+                     *         "id": "openai.whisper-1",
                      *         "display_name": "OpenAI Whisper v2",
                      *         "description": "OpenAI's large Whisper model (version 2).",
                      *         "supported_languages": [
