@@ -44,6 +44,28 @@ describe('models helper', () => {
 		});
 	});
 
+	it('preserves unfamiliar catalog metadata when listing and filtering models', () => {
+		const fixture = JSON.parse(`[{
+			"id": "futurecorp.model-x",
+			"display_name": "Model X",
+			"provider": "futurecorp",
+			"model_type": "podcast",
+			"accuracy_tier": "ultra",
+			"is_available": true,
+			"supports_srt": false,
+			"supports_vtt": false
+		}]`);
+
+		const models = filterModels(normalizeModelsResponse(fixture), { provider: 'futurecorp' });
+		expect(models).toMatchObject([
+			{
+				id: 'futurecorp.model-x',
+				provider: 'futurecorp',
+				raw: { model_type: 'podcast', accuracy_tier: 'ultra' },
+			},
+		]);
+	});
+
 	it('extracts model arrays from wrapper objects and filters models', () => {
 		const models = normalizeModelsResponse({
 			data: [
