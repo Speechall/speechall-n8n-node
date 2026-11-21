@@ -4,7 +4,7 @@ Speechall is a unified speech-to-text API for transcribing audio with multiple p
 
 ## Installation
 
-Install `n8n-nodes-speechall` as a community node in n8n Cloud or self-hosted n8n.
+Install `n8n-nodes-speechall` as an unverified community node on self-hosted n8n. Installation in n8n Cloud will become available after the package is approved through the n8n Creator Portal.
 
 For local development:
 
