@@ -141,7 +141,12 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
-         * @description The identifier for the underlying Speech-to-Text service provider (e.g., 'openai', 'deepgram').
+         * @description An opaque Speech-to-Text provider identifier. New providers can appear without an SDK update. Known values are listed in `TranscriptionProvider`.
+         * @example openai
+         */
+        OpenTranscriptionProvider: string;
+        /**
+         * @description Known provider identifiers at SDK generation time. Helper only and non-exhaustive. Provider fields use `OpenTranscriptionProvider`.
          * @enum {string}
          */
         TranscriptionProvider: "assemblyai" | "azure" | "cloudflare" | "deepgram" | "elevenlabs" | "gemini" | "gladia" | "groq" | "ibm" | "mistral" | "openai" | "revai" | "smallestai" | "soniox" | "speechmatics" | "togetherai" | "xai";
@@ -151,7 +156,7 @@ export interface components {
          */
         OpenTranscriptionModelIdentifier: string;
         /**
-         * @description Unique identifier for a specific Speech-to-Text model, composed as `provider.model_name`. Used to select the engine for transcription.
+         * @description Known model identifiers (`provider.model_name`) at SDK generation time. Use these constants with `OpenTranscriptionModelIdentifier` fields. The live list is available at `/speech-to-text-models`.
          * @example openai.whisper-1
          * @enum {string}
          */
@@ -325,6 +330,16 @@ export interface components {
              */
             confidence?: number;
         };
+        /**
+         * @description Known `SpeechToTextModel.model_type` values for use as constants. The field accepts any string.
+         * @enum {string}
+         */
+        SpeechToTextModelModelType: "general" | "phone_call" | "video" | "command_and_search" | "medical" | "legal" | "voicemail" | "meeting";
+        /**
+         * @description Known `SpeechToTextModel.accuracy_tier` values for use as constants. The field accepts any string.
+         * @enum {string}
+         */
+        SpeechToTextModelAccuracyTier: "basic" | "standard" | "enhanced" | "premium";
         /** @description Describes an available speech-to-text model, its provider, capabilities, and characteristics. */
         SpeechToTextModel: {
             /** @description The unique identifier for this model (`provider.model_name`). */
@@ -335,7 +350,7 @@ export interface components {
              */
             display_name: string;
             /** @description The provider of this model. */
-            provider: components["schemas"]["TranscriptionProvider"];
+            provider: components["schemas"]["OpenTranscriptionProvider"];
             /**
              * @description A brief description of the model, its intended use case, or version notes.
              * @example Deepgram's latest general-purpose transcription model, optimized for various audio types.
@@ -409,17 +424,15 @@ export interface components {
              */
             release_date?: string | null;
             /**
-             * @description The primary type or training domain of the model. Helps identify suitability for different audio types.
+             * @description The primary type or training domain of the model. Helps identify suitability for different audio types. Known values are listed in `SpeechToTextModelModelType`.
              * @example general
-             * @enum {string|null}
              */
-            model_type?: "general" | "phone_call" | "video" | "command_and_search" | "medical" | "legal" | "voicemail" | "meeting" | null;
+            model_type?: string | null;
             /**
-             * @description A general indication of the model's expected accuracy level relative to other models. Not a guaranteed metric.
+             * @description A general indication of the model's expected accuracy level relative to other models. Not a guaranteed metric. Known values are listed in `SpeechToTextModelAccuracyTier`.
              * @example enhanced
-             * @enum {string|null}
              */
-            accuracy_tier?: "basic" | "standard" | "enhanced" | "premium" | null;
+            accuracy_tier?: string | null;
             /**
              * @description A list of audio encodings that this model supports or is optimized for (e.g., LINEAR16, FLAC, MP3, Opus).
              * @example [
